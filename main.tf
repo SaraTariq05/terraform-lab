@@ -1,54 +1,50 @@
-resource "aws_security_group" "web_sg" {
-  name = "allow_web_ssh"
+# S3 Bucket
+resource "aws_s3_bucket" "static_site" {
+  bucket = var.bucket_name
 
-  ingress {
-    from_port   = 22
-    to_port     = 22
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  ingress {
-    from_port   = 80
-    to_port     = 80
-    protocol    = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
-  }
-
-  egress {
-    from_port   = 0
-    to_port     = 0
-    protocol    = "-1"
-    cidr_blocks = ["0.0.0.0/0"]
+  tags = {
+    Name = "Static Website"
   }
 }
 
-resource "aws_instance" "web" {
-  ami                    = "ami-0536b5f8533c594b5"
-  instance_type          = var.instance_type
-  key_name               = var.key_name
-  vpc_security_group_ids = [aws_security_group.web_sg.id]
+# Disable block public access
+resource "aws_s3_bucket_public_access_block" "public_access" {
+  bucket = aws_s3_bucket.static_site.id
 
-  tags = {
-    Name = "Terraform-Web-Server"
-  }
+  block_public_acls   = false
+  block_public_policy = false
+}
 
-  # SSH Connection
-  connection {
-    type        = "ssh"
-    user        = "ec2-user"
-    private_key = file(var.private_key_path)
-    host        = self.public_ip
-  }
+# Bucket policy (public read)
+resource "aws_s3_bucket_policy" "public_policy" {
+  bucket = aws_s3_bucket.static_site.id
 
-  # Remote Exec Provisioner
-  provisioner "remote-exec" {
-    inline = [
-      "sudo yum update -y",
-      "sudo yum install httpd -y",
-      "sudo systemctl start httpd",
-      "sudo systemctl enable httpd",
-      "echo '<h1>Apache Installed using Terraform Remote Exec</h1>' | sudo tee /var/www/html/index.html"
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Effect = "Allow"
+        Principal = "*"
+        Action = "s3:GetObject"
+        Resource = "${aws_s3_bucket.static_site.arn}/*"
+      }
     ]
+  })
+}
+
+# Enable static website hosting
+resource "aws_s3_bucket_website_configuration" "website" {
+  bucket = aws_s3_bucket.static_site.id
+
+  index_document {
+    suffix = "index.html"
   }
+}
+
+# Upload index.html to S3
+resource "aws_s3_object" "index_file" {
+  bucket       = aws_s3_bucket.static_site.bucket
+  key          = "index.html"
+  source       = "index.html"
+  content_type = "text/html"
 }

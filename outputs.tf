@@ -1,4 +1,3 @@
-output "public_ip" {
-  description = "Public IP of EC2"
-  value       = aws_instance.web.public_ip
+output "website_url" {
+  value = aws_s3_bucket_website_configuration.website.website_endpoint
 }
