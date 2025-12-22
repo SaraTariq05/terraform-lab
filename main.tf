@@ -1,9 +1,13 @@
-# S3 Bucket
+# Create S3 bucket
 resource "aws_s3_bucket" "static_site" {
   bucket = var.bucket_name
 
   tags = {
     Name = "Static Website"
+  }
+
+  lifecycle {
+    prevent_destroy = false
   }
 }
 
@@ -15,7 +19,7 @@ resource "aws_s3_bucket_public_access_block" "public_access" {
   block_public_policy = false
 }
 
-# Bucket policy (public read)
+# Public read policy
 resource "aws_s3_bucket_policy" "public_policy" {
   bucket = aws_s3_bucket.static_site.id
 
@@ -23,10 +27,10 @@ resource "aws_s3_bucket_policy" "public_policy" {
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
+        Effect    = "Allow"
         Principal = "*"
-        Action = "s3:GetObject"
-        Resource = "${aws_s3_bucket.static_site.arn}/*"
+        Action    = "s3:GetObject"
+        Resource  = "${aws_s3_bucket.static_site.arn}/*"
       }
     ]
   })
@@ -41,7 +45,7 @@ resource "aws_s3_bucket_website_configuration" "website" {
   }
 }
 
-# Upload index.html to S3
+# Upload index.html
 resource "aws_s3_object" "index_file" {
   bucket       = aws_s3_bucket.static_site.bucket
   key          = "index.html"

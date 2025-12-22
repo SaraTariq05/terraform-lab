@@ -1,4 +1,4 @@
-name: Deploy to S3
+name: Deploy Static Website to S3
 
 on:
   push:
@@ -10,7 +10,7 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout code
+      - name: Checkout Repository
         uses: actions/checkout@v3
 
       - name: Setup Terraform
@@ -27,6 +27,9 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
+
+      - name: Terraform Validate
+        run: terraform validate
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
