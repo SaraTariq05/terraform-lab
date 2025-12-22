@@ -1,4 +1,4 @@
-name: Deploy Static Website to S3
+name: Dockerized Terraform S3 Deployment
 
 on:
   push:
@@ -6,12 +6,22 @@ on:
       - main
 
 jobs:
-  terraform:
+  deploy:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout Repository
         uses: actions/checkout@v3
+
+      - name: Build Docker Image
+        run: |
+          docker build -t static-site .
+
+      - name: Extract site files from Docker image
+        run: |
+          docker create --name temp_container static-site
+          docker cp temp_container:/usr/share/nginx/html/index.html index.html
+          docker rm temp_container
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
