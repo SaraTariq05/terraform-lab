@@ -21,8 +21,6 @@ resource "aws_s3_bucket_public_access_block" "public_access" {
   restrict_public_buckets = false
 }
 
-# **REMOVE public bucket policy** to fix AccessDenied
-
 # Enable static website hosting
 resource "aws_s3_bucket_website_configuration" "website" {
   bucket = aws_s3_bucket.static_site.id
@@ -32,13 +30,10 @@ resource "aws_s3_bucket_website_configuration" "website" {
   }
 }
 
-# Upload index.html
+# Upload index.html (remove ACL)
 resource "aws_s3_object" "index_file" {
   bucket       = aws_s3_bucket.static_site.bucket
   key          = "index.html"
   source       = "index.html"
   content_type = "text/html"
-  acl          = "public-read"  # added for public access
 }
-
-
