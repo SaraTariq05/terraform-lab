@@ -41,8 +41,4 @@ resource "aws_s3_object" "index_file" {
   acl          = "public-read"  # added for public access
 }
 
-# Output Website URL
-output "website_url" {
-  description = "URL of the static website"
-  value       = aws_s3_bucket_website_configuration.website.website_endpoint
-}
+
