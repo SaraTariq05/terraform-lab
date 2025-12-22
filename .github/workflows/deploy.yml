@@ -1,4 +1,4 @@
-name: Dockerized Terraform S3 Deployment
+name: Deploy to S3
 
 on:
   push:
@@ -6,22 +6,12 @@ on:
       - main
 
 jobs:
-  deploy:
+  terraform:
     runs-on: ubuntu-latest
 
     steps:
-      - name: Checkout Repository
+      - name: Checkout code
         uses: actions/checkout@v3
-
-      - name: Build Docker Image
-        run: |
-          docker build -t static-site .
-
-      - name: Extract site files from Docker image
-        run: |
-          docker create --name temp_container static-site
-          docker cp temp_container:/usr/share/nginx/html/index.html index.html
-          docker rm temp_container
 
       - name: Setup Terraform
         uses: hashicorp/setup-terraform@v2
@@ -37,9 +27,6 @@ jobs:
 
       - name: Terraform Init
         run: terraform init
-
-      - name: Terraform Validate
-        run: terraform validate
 
       - name: Terraform Apply
         run: terraform apply -auto-approve
