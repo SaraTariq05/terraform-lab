@@ -1,8 +1,3 @@
-# AWS Provider
-provider "aws" {
-  region = var.aws_region
-}
-
 # S3 Bucket
 resource "aws_s3_bucket" "static_site" {
   bucket = var.bucket_name
@@ -16,7 +11,7 @@ resource "aws_s3_bucket" "static_site" {
   }
 }
 
-# Disable Block Public Access at Bucket Level
+# Disable Block Public Access
 resource "aws_s3_bucket_public_access_block" "public_access" {
   bucket = aws_s3_bucket.static_site.id
 
@@ -26,7 +21,7 @@ resource "aws_s3_bucket_public_access_block" "public_access" {
   restrict_public_buckets = false
 }
 
-# Public Read Policy (Optional, works if block_public_policy is false)
+# Public Read Policy
 resource "aws_s3_bucket_policy" "public_policy" {
   bucket = aws_s3_bucket.static_site.id
 
@@ -43,7 +38,7 @@ resource "aws_s3_bucket_policy" "public_policy" {
   })
 }
 
-# Enable Static Website Hosting
+# Enable static website hosting
 resource "aws_s3_bucket_website_configuration" "website" {
   bucket = aws_s3_bucket.static_site.id
 
@@ -52,16 +47,10 @@ resource "aws_s3_bucket_website_configuration" "website" {
   }
 }
 
-# Upload index.html to S3
+# Upload index.html
 resource "aws_s3_object" "index_file" {
   bucket       = aws_s3_bucket.static_site.bucket
   key          = "index.html"
   source       = "index.html"
   content_type = "text/html"
-}
-
-# Output Website URL
-output "website_url" {
-  description = "URL of the static website"
-  value       = aws_s3_bucket_website_configuration.website.website_endpoint
 }
