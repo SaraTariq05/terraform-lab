@@ -21,22 +21,7 @@ resource "aws_s3_bucket_public_access_block" "public_access" {
   restrict_public_buckets = false
 }
 
-# Public Read Policy
-resource "aws_s3_bucket_policy" "public_policy" {
-  bucket = aws_s3_bucket.static_site.id
-
-  policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [
-      {
-        Effect    = "Allow"
-        Principal = "*"
-        Action    = "s3:GetObject"
-        Resource  = "${aws_s3_bucket.static_site.arn}/*"
-      }
-    ]
-  })
-}
+# **REMOVE public bucket policy** to fix AccessDenied
 
 # Enable static website hosting
 resource "aws_s3_bucket_website_configuration" "website" {
@@ -53,4 +38,11 @@ resource "aws_s3_object" "index_file" {
   key          = "index.html"
   source       = "index.html"
   content_type = "text/html"
+  acl          = "public-read"  # added for public access
+}
+
+# Output Website URL
+output "website_url" {
+  description = "URL of the static website"
+  value       = aws_s3_bucket_website_configuration.website.website_endpoint
 }
